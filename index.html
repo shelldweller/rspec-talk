@@ -1,0 +1,545 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="revealjs/css/reveal.css">
+		<link rel="stylesheet" href="revealjs/css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="revealjs/lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'revealjs/css/print/pdf.css' : 'revealjs/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+        <!-- *********************** -->
+        <section data-markdown>
+          # Introduction into Rspec
+        </section>
+
+        <section data-markdown>
+            # Test structure
+            * describe
+            * context
+            * it
+        </section>
+  
+        <section data-markdown>
+            ```ruby
+            describe Survey do
+              describe '#open' do
+                it 'opens survey' do
+                  # your test here
+                end
+              end
+            end
+            ```
+        </section>
+
+        <section data-markdown>
+            ```ruby
+            describe do
+              describe '#open' do
+                context 'closed survey' do
+                  it 'opens survey' do
+                    # your test here
+                  end
+                end
+              end
+            end
+            ```
+        </section>
+
+        <section data-markdown>
+            ```ruby
+            describe MyClass do
+              describe '#instance_method' do
+                # ...
+              end
+
+              describe '::class_method' do
+                # ...
+              end
+            end
+            ```
+        </section>
+          
+        <section data-markdown>
+          Prefer 
+          ```ruby
+          describe MyClass do
+            # ...
+          end
+          ```
+
+          over
+          
+          ```ruby
+          describe 'MyClass' do
+            # ...
+          end
+          ```
+        </section>
+
+        <section data-markdown>
+          # Subject
+        </section>
+            
+        <section data-markdown>
+          Implicit subject
+          ```ruby
+          describe Array do
+            it 'defines implicit subject' do
+              expect(subject.class).to be Array
+            end
+          end
+          ```
+        </section>
+
+        <section data-markdown>
+          Explicit subject
+          ```ruby
+          describe Hash do
+            subject { Hash.new('bananas') }
+
+            it 'defines explicit subject' do
+              expect(subject[:metrics]).to eql('bananas')
+            end
+          end
+          ```
+        </section>
+  
+        <section data-markdown>
+          Subject one-liners
+          ```ruby
+          describe Array do
+            describe 'one-liner' do
+              it { is_expected.to be_empty }
+            end
+
+            describe 'multi-liner' do
+              it 'is same as one-liner above' do
+                expect(subject).to be_empty
+              end
+            end
+          end
+          ```
+        </section>
+
+        <!-- ************* helpers *********** -->
+        <section data-markdown>
+            # Helpers
+        </section>  
+
+        <section data-markdown>
+          Memoized helpers:
+          
+          `let` - lazy and cached
+
+          `let!` - eager and cached
+        </section>
+
+        <section data-markdown>
+          `let` in action
+          ```ruby
+          let(:account) { FactoryGirl.create(:account) }
+          let(:user) { FactoryGirl.create(:user, account: account) }
+
+          it 'gets created when used' do
+            expect(user.active).to be true
+          end
+          ```
+        </section>
+
+        <section data-markdown>
+          Arbitrary helper
+          ```ruby
+          describe 'Custom Helper' do
+            def unicorn
+              '🦄'
+            end
+
+            it 'is a unicorn!' do
+              expect(unicorn).to eql('🦄')
+            end
+          end
+          ```
+        </section>
+
+        <section data-markdown>
+          # Expectations
+          defauts to `rspec/expectations`
+
+          (configurable)
+        </section>
+
+        <section data-markdown>
+          See http://rspec.info/documentation/3.6/rspec-expectations/#label-Built-in+matchers
+
+          (I guess I could have just shamelessly copied that into my presentation)
+        </section>
+
+        <section data-markdown>
+          Prefer `expect` over `should`
+        </section>
+
+
+        <!-- ************* hooks *********** -->
+
+        <section data-markdown>
+          # Hooks
+        </section>
+
+        <section data-markdown>
+          Before / after
+          ```ruby
+          before(:suite) {}
+          before(:context) {} # alias before(:all)
+          before(:example) {} # alias before(:each)
+          after(:example) {}
+          after(:context) {}
+          after(:suite) {}
+          ```
+        </section>
+
+        <section data-markdown>
+          Prefer
+          ```ruby
+          let(:user) { FactoryGirl.create(:user) }
+          ```
+          over
+          ```ruby
+          before(:example) { @user = FactoryGirl.create(:user) }
+          ```
+        </section>
+
+        <section data-markdown>
+          before + after = around
+
+          ```ruby
+          describe 'around' do
+            around(:example) do |example|
+              puts 'before'
+              example.call # or call something that yields
+              puts 'after'
+            end
+
+            it 'runs around' do
+              puts 'running...'
+            end
+          end
+        ```
+        </section>
+
+        <!-- ************* mocks *********** -->
+
+        <section data-markdown>
+            # Mocks
+            https://github.com/rspec/rspec-mocks
+        </section>
+          
+        <section data-markdown>
+          Call `Net::HTTP` with mocked output.
+          ```ruby
+          require 'net/http'
+          
+          describe Net::HTTP do
+            it 'mocks HTTP request' do
+              uri = URI('https://www.infotech.com')
+              expect(Net::HTTP).to(
+                receive(:get).with(uri).and_return(some: 'data')
+              )
+              response = Net::HTTP.get(uri)
+              expect(response).to eql(some: 'data')
+            end
+          end
+          ```
+        </section>
+
+        <section>
+          Enjoy responsibly
+          <h1>🍸</h1>
+          <h1 class="fragment">🍻</h1>
+        </section>
+
+        <!-- ************* Factory girl *********** -->
+
+        <section data-markdown>
+          # FactoryGirl + Rails
+        </section>
+
+        <section data-markdown>
+          Define it:
+          ```ruby
+          FactoryGirl.define do
+            factory :area, class: Special::Area do
+              association :account
+              sequence(:name) { |n| "Area #{n}" }
+              sequence(:slug) { |n| "area-#{n}" }
+              description 'Lorem ipsum'
+              custom false
+            end
+          end
+          ```
+          Use it:
+          ```ruby
+          let(:area) { FactoryGirl.create(:area) }
+          ```
+        </section>
+
+        <!-- ************* Factory girl *********** -->
+
+        <section data-markdown>
+            # rspec-rails
+        </section>
+
+        <section data-markdown>
+          Controller spec
+          ```ruby
+          describe BooksController, type: :controller do
+            describe '#index' do
+              it 'outputs books by author' do
+                get :index, author: 'Oliver Sacks'
+                expect(response).to be_success
+                expect(response.body).to eql(oliver_sacks_books)
+              end
+            end
+          end
+          ```
+        </section>
+
+
+        <section data-markdown>
+          Controller matchers
+          ```ruby
+          expect(response).to render_template(:new)
+          expect(response).to redirect_to(location)
+          expect(response).to have_http_status(:created)
+          expect(assigns(:posts)).to match_array([book1, book2])
+          ```
+        </section>
+
+
+        <section data-markdown>
+          If working with mountable engine
+          ```ruby
+          describe BooksController, type: :controller do
+            routes { BookEngine.routes }
+
+            # ...
+          end
+          ```
+        </section>
+
+        <section data-markdown>
+          Request specs, similar to 
+          http://rspec.info/documentation/3.6/rspec-rails/#Request_Specs
+        </section>
+
+        <section data-markdown>
+          ## rspec-json_expectations
+          https://github.com/waterlink/rspec-json_expectations
+        </section>
+
+        <section data-markdown>
+          ```ruby
+          describe 'JSON expectations' do
+            subject { { id: 10, name: 'Bob' } }
+
+            it 'includes json' do
+              expect(subject).to include_json(name: 'Bob')
+            end
+          end
+          ```
+        </section>
+        
+        <!-- ************* advanced *********** -->
+
+        <section data-markdown>
+          # Advanced
+        </section>
+
+        <section data-markdown>
+            ## Failure aggregation
+        </section>
+
+        <section data-markdown>
+          If you want to see all failures, not just the first one:
+          ```ruby
+          describe 'aggregate_failures' do
+            it 'aggregates failures' do
+              aggregate_failures do
+                expect(true).to be false
+                expect(3).to be 1
+              end
+            end
+          end        
+          ```
+        </section>
+          
+  
+        <section data-markdown>
+          ## Shared examples
+        </section>
+
+        <section data-markdown>
+          Define it:
+          ```ruby
+          shared_examples 'test shared example' do |param|
+            let(:value) { param }
+          
+            it 'is a shared example' do
+              expect(value).to eql(param)
+            end
+          end
+          ```
+          Use it:
+          ```ruby
+          describe 'Shared example' do
+            include_examples 'test shared example', 888
+          end
+          ```
+        </section>
+
+        <section data-markdown>
+            ## Shared context
+          </section>
+  
+          <section data-markdown>
+            Define it:
+            ```ruby
+            shared_context 'shared stuff' do
+              # You can share any metadata: before, def, let, subject...
+              let(:share) { 'partager' }
+            end
+            ```
+
+            Use it:
+            ```ruby
+            require_relative './shared_context.rb'
+            
+            describe 'Shared context' do
+              include_context 'shared stuff'
+            
+              it('works') { expect(share).to eql('partager') }
+            end
+            ```
+          </section>
+  
+        <section data-markdown>
+          ## Command line options
+        </section>
+
+        <section data-markdown>
+          Filter tests by example name
+
+          `rspec . --example 'Controller'`
+        </section>
+
+        <section data-markdown>
+            Filter tests by tag
+  
+            `rspec . --tag type:controller`
+        </section>
+
+        <section data-markdown>
+          Filter tests by file name pattern
+
+          `rspec --pattern './**/area*_spec.rb'`
+        </section>
+
+        <section data-markdown>
+          When tests fail randomly, this may help:
+
+          `--bisect`
+        </section>
+
+
+        <section data-markdown>
+          Quickest way to fix tests in Rollbar
+          
+          (and make them blazingly fast)
+
+          `--dry-run`
+        </section>
+
+        <section data-markdown>
+          To speed up tests in case of failure
+
+          `--fail-fast`
+        </section>
+
+        <section data-markdown>
+          Only run previously failed examples
+          
+          `--only-failures`
+          
+          `--next-failure`
+
+          Requires special setting:
+          ```ruby
+          config.example_status_persistence_file_path = 'rspec.log'
+          ```
+        </section>
+
+        <section data-markdown>
+            Custom format
+
+            `--format documentation`
+
+            `--format Fivemat`
+        </section>
+
+        <section data-markdown>
+          # Epilogue
+        </section>
+
+        <section>
+            Prefer writing your tests first.
+        </section>
+
+        <section data-markdown>
+            References
+            * http://rspec.info/documentation/
+            * https://relishapp.com/rspec/
+            * http://www.betterspecs.org/
+            * http://www.rubydoc.info/gems/factory_girl/file/GETTING_STARTED.md
+            * https://github.com/waterlink/rspec-json_expectations
+          </section>
+    
+        <!-- *********************** -->
+			</div>
+    </div>
+    
+  
+		<script src="revealjs/lib/js/head.min.js"></script>
+		<script src="revealjs/js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'revealjs/plugin/markdown/marked.js' },
+					{ src: 'revealjs/plugin/markdown/markdown.js' },
+					{ src: 'revealjs/plugin/notes/notes.js', async: true },
+					{ src: 'revealjs/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				],
+        history: true
+			});
+		</script>
+	</body>
+</html>
